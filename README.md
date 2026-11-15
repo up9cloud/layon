@@ -30,16 +30,18 @@ through mDNS, so either side changing IP needs no re-pairing.
 
 ## Download
 
-Each CI run on the Actions tab keeps one file per device:
+Each CI run on the Actions tab keeps one file per device. You need an agent on
+the machine you control, and one app on the device you hold.
 
-| file | install on |
-| --- | --- |
-| `layon-agent-<platform>` | the work machine |
-| `layon-app-ios.ipa` | iPhone or iPad, signed with your own Apple ID (e.g. Sideloadly) |
-| `layon-app-android.apk` | Android phone or tablet |
-| `layon-cli-<platform>` | another computer, to test an agent without the app |
-
-`<platform>` is `windows-x64`, `windows-arm64`, `linux-x64` or `macos-arm64`.
+| file | install on | what it does |
+| --- | --- | --- |
+| `layon-agent-windows-x64.exe` | the work machine: Windows on Intel/AMD | Stays running and carries out sleep and hibernate requests from paired devices; shows the pairing QR code (`layon-agent pair`). |
+| `layon-agent-windows-arm64.exe` | the work machine: Windows on ARM (e.g. Snapdragon) | Same as above. |
+| `layon-agent-linux-x64` | the work machine: Linux | Same as above. |
+| `layon-agent-macos-arm64` | the work machine: Apple Silicon Mac | Same as above. |
+| `layon-app-ios.ipa` | iPhone or iPad | The remote: scan the QR code once, then sleep, hibernate or wake the machine. Unsigned: sign it with your own Apple ID when installing (e.g. Sideloadly). |
+| `layon-app-android.apk` | Android phone or tablet | The same remote, for Android. |
+| `layon-cli-windows-x64.exe`, `-windows-arm64.exe`, `-linux-x64`, `-macos-arm64` | any other computer on the same network | The remote as a command line (`layon pair`, `layon sleep`, `layon wake`). For testing an agent without a phone, and for a Windows tablet until it has an app. |
 
 ## Build
 
