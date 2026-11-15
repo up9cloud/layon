@@ -11,10 +11,13 @@
     <UseWinUI>true</UseWinUI>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- A plain folder with everything in it: no MSIX, no runtime to install. -->
+    <!-- A plain folder, no MSIX. Native AOT drops the .NET runtime; the Windows
+         App Runtime is installed once, and its bootstrapper offers the
+         download when it is missing. -->
     <WindowsPackageType>None</WindowsPackageType>
-    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-    <SelfContained>true</SelfContained>
+    <PublishAot>true</PublishAot>
+    <IsAotCompatible>true</IsAotCompatible>
+    <WindowsAppSDKBootstrapAutoInitializeOptions_OnNoMatch_ShowUI>true</WindowsAppSDKBootstrapAutoInitializeOptions_OnNoMatch_ShowUI>
   </PropertyGroup>
 
   <ItemGroup>

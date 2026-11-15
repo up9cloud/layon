@@ -48,7 +48,7 @@ the machine you control, and one app on the device you hold.
 | `layon-macos-x64` | the work machine: Intel Mac | Same as above. |
 | `layon-app-ios.ipa` | iPhone or iPad | The remote: scan the QR code once, then sleep, hibernate or wake the machine. Unsigned: sign it with your own Apple ID when installing (e.g. Sideloadly). |
 | `layon-app-android.apk` | Android phone or tablet | The same remote, for Android. |
-| `layon-app-windows-x64.zip`, `layon-app-windows-arm64.zip` | Windows tablet or laptop (Intel/AMD, or ARM) | The same remote, for Windows. Unzip anywhere and run `Layon.exe`; nothing to install. Pairing is by pasting the code `layon pair` prints. |
+| `layon-app-windows-x64.zip`, `layon-app-windows-arm64.zip` | Windows tablet or laptop (Intel/AMD, or ARM) | The same remote, for Windows. Unzip anywhere and run `Layon.exe`. It needs the Windows App Runtime, and offers to download it on first start if missing. Pairing is by pasting the code `layon pair` prints. |
 
 ## Build
 

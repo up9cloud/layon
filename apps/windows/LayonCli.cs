@@ -1,9 +1,16 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Layon;
 
 public record Host(string Id, string Name, string Os);
+
+// Source-generated, since reflection-based JSON does not survive Native AOT.
+[JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]
+[JsonSerializable(typeof(Host))]
+[JsonSerializable(typeof(List<Host>))]
+internal partial class HostJson : JsonSerializerContext;
 
 public class CliException(string message) : Exception(message);
 
@@ -11,16 +18,15 @@ public class CliException(string message) : Exception(message);
 public sealed class LayonCli
 {
     private static readonly string Exe = Path.Combine(AppContext.BaseDirectory, "layon.exe");
-    private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
     // One at a time: concurrent runs would race on the same client file.
     private readonly SemaphoreSlim gate = new(1, 1);
 
     public async Task<List<Host>> HostsAsync() =>
-        JsonSerializer.Deserialize<List<Host>>(await RunAsync("hosts"), Json) ?? [];
+        JsonSerializer.Deserialize(await RunAsync("hosts"), HostJson.Default.ListHost) ?? [];
 
     public async Task<Host> PairAsync(string ticket) =>
-        JsonSerializer.Deserialize<Host>(await RunAsync("pair", ticket.Trim()), Json)
+        JsonSerializer.Deserialize(await RunAsync("pair", ticket.Trim()), HostJson.Default.Host)
         ?? throw new CliException("layon printed no host");
 
     public async Task<bool> IsAwakeAsync(string id)
