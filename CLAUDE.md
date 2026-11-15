@@ -20,9 +20,9 @@ See `README.md` for layout and usage.
   `cargo update` breaks the iOS build; unpin once
   https://github.com/shellrow/netdev/pull/192 is released and reaches iroh.
 - The apps are shells over `layon remote` by decision: a new action goes into
-  it first, and its `--json` output is the Android app's interface
-  (`apps/android/.../LayonCli.kt` parses it). Only iOS links `crates/ffi`.
-- Neither app builds on the Linux dev box (no Swift, no Android SDK); CI is the
+  it first, and its `--json` output is the interface of the Android and Windows
+  apps (each has a `LayonCli` that parses it). Only iOS links `crates/ffi`.
+- No app builds on the Linux dev box (no Swift, Android SDK or .NET); CI is the
   check. A Mac with Xcode can type-check the Swift quickly:
   `xcrun -sdk iphoneos swiftc -typecheck -I <include dir> Sources/*.swift
   layon_ffi.swift`, against bindings generated on Linux.

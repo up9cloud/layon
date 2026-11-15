@@ -23,6 +23,8 @@ device.
 - `apps/ios` — SwiftUI app for iPhone and iPad, over `crates/ffi`.
 - `apps/android` — Android app; it bundles `layon` and runs
   `layon remote --json`.
+- `apps/windows` — WinUI 3 app (C#); it runs the `layon.exe` beside it the
+  same way.
 
 The two sides talk over [iroh](https://iroh.computer) (QUIC). Each has a
 permanent key; a device is identified by its key, never by an address. Pairing
@@ -36,12 +38,13 @@ the machine you control, and one app on the device you hold.
 
 | file | install on | what it does |
 | --- | --- | --- |
-| `layon-windows-x64.exe` | the work machine: Windows on Intel/AMD | Run with no arguments, it stays running and carries out sleep and hibernate requests from paired devices; `layon pair` shows the pairing QR code. `layon remote ...` makes the same file a command-line remote for another machine: for testing without a phone, and for a Windows tablet until it has an app. |
+| `layon-windows-x64.exe` | the work machine: Windows on Intel/AMD | Run with no arguments, it stays running and carries out sleep and hibernate requests from paired devices; `layon pair` shows the pairing QR code. `layon remote ...` makes the same file a command-line remote for another machine: for testing without a phone. |
 | `layon-windows-arm64.exe` | the work machine: Windows on ARM (e.g. Snapdragon) | Same as above. |
 | `layon-linux-x64` | the work machine: Linux | Same as above. |
 | `layon-macos-arm64` | the work machine: Apple Silicon Mac | Same as above. |
 | `layon-app-ios.ipa` | iPhone or iPad | The remote: scan the QR code once, then sleep, hibernate or wake the machine. Unsigned: sign it with your own Apple ID when installing (e.g. Sideloadly). |
 | `layon-app-android.apk` | Android phone or tablet | The same remote, for Android. |
+| `layon-app-windows-x64.zip`, `layon-app-windows-arm64.zip` | Windows tablet or laptop (Intel/AMD, or ARM) | The same remote, for Windows. Unzip anywhere and run `Layon.exe`; nothing to install. Pairing is by pasting the code `layon pair` prints. |
 
 ## Build
 

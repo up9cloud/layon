@@ -1,0 +1,29 @@
+<Window
+    x:Class="Layon.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Layon">
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid Padding="24" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="Layon" Style="{StaticResource TitleTextBlockStyle}" VerticalAlignment="Center" />
+            <Button x:Name="PairButton" Content="Pair…" MinHeight="44" Click="OnPair" />
+            <Button x:Name="RefreshButton" Content="Refresh" MinHeight="44" Click="OnRefresh" />
+        </StackPanel>
+
+        <TextBlock x:Name="Status" Grid.Row="1" TextWrapping="Wrap" />
+
+        <ScrollViewer Grid.Row="2">
+            <StackPanel x:Name="HostList" Spacing="16" />
+        </ScrollViewer>
+    </Grid>
+</Window>
