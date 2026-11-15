@@ -1,0 +1,42 @@
+name: windows-app
+
+on:
+  push:
+    branches: [master]
+    paths: &paths
+      - crates/**
+      - Cargo.toml
+      - Cargo.lock
+      - apps/windows/**
+      - .github/workflows/windows-app.yml
+  pull_request:
+    paths: *paths
+  workflow_dispatch:
+
+jobs:
+  windows-app:
+    strategy:
+      matrix:
+        include:
+          - { os: windows-latest, label: windows-x64, platform: x64 }
+          - { os: windows-11-arm, label: windows-arm64, platform: ARM64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - run: cargo build --release -p layon
+      - name: Build the app, with layon.exe beside it
+        shell: pwsh
+        run: |
+          $rid = "win-${{ matrix.platform }}".ToLower()
+          dotnet publish apps/windows/Layon.csproj -c Release -r $rid -p:Platform=${{ matrix.platform }} -o app
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          Copy-Item target/release/layon.exe app/
+          Compress-Archive -Path app/* -DestinationPath layon-app-${{ matrix.label }}.zip
+      - uses: actions/upload-artifact@v7
+        with:
+          path: layon-app-${{ matrix.label }}.zip
+          archive: false

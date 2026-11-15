@@ -33,7 +33,9 @@ through mDNS, so either side changing IP needs no re-pairing.
 
 ## Download
 
-Each CI run on the Actions tab keeps one file per device. You need an agent on
+The Actions tab has one workflow per target (`desktop`, `ios`, `android`,
+`windows-app`); each run keeps one file per device. They run only when code
+they build changes, so a docs-only commit builds nothing. You need `layon` on
 the machine you control, and one app on the device you hold.
 
 | file | install on | what it does |

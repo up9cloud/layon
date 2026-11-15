@@ -1,0 +1,39 @@
+name: desktop
+
+on:
+  push:
+    branches: [master]
+    paths: &paths
+      - crates/**
+      - Cargo.toml
+      - Cargo.lock
+      - .github/workflows/desktop.yml
+  pull_request:
+    paths: *paths
+  workflow_dispatch:
+
+jobs:
+  desktop:
+    strategy:
+      matrix:
+        include:
+          - { os: windows-latest, label: windows-x64, ext: .exe }
+          - { os: windows-11-arm, label: windows-arm64, ext: .exe }
+          - { os: ubuntu-latest, label: linux-x64, ext: "" }
+          - { os: macos-latest, label: macos-arm64, ext: "" }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+      - run: cargo build --release -p layon
+      - name: Name the binary after the device it installs on
+        shell: bash
+        run: |
+          mkdir dist
+          cp target/release/layon${{ matrix.ext }} dist/layon-${{ matrix.label }}${{ matrix.ext }}
+      - uses: actions/upload-artifact@v7
+        with:
+          path: dist/layon-${{ matrix.label }}${{ matrix.ext }}
+          archive: false
