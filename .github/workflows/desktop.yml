@@ -7,7 +7,6 @@ on:
       - crates/**
       - Cargo.toml
       - Cargo.lock
-      - .cargo/**
       - .github/workflows/desktop.yml
   pull_request:
     paths: *paths

@@ -7,7 +7,6 @@ on:
       - crates/**
       - Cargo.toml
       - Cargo.lock
-      - .cargo/**
       - apps/windows/**
       - .github/workflows/windows-app.yml
   pull_request:

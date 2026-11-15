@@ -42,7 +42,7 @@ the machine you control, and one app on the device you hold.
 | --- | --- | --- |
 | `layon-windows-x64.exe` | the work machine: Windows on Intel/AMD | Run with no arguments, it stays running and carries out sleep and hibernate requests from paired devices; `layon pair` shows the pairing QR code. `layon remote ...` makes the same file a command-line remote for another machine: for testing without a phone. |
 | `layon-windows-arm64.exe` | the work machine: Windows on ARM (e.g. Snapdragon) | Same as above. |
-| `layon-linux-x64` | the work machine: Linux on Intel/AMD | Same as above. Statically linked (musl), so any distro runs it. Every `layon` file depends only on the OS itself. |
+| `layon-linux-x64` | the work machine: Linux on Intel/AMD | Same as above. Statically linked (musl), so any distro runs it. |
 | `layon-linux-arm64` | the work machine: Linux on ARM (e.g. Raspberry Pi 4/5) | Same as above. |
 | `layon-macos-arm64` | the work machine: Apple Silicon Mac | Same as above. |
 | `layon-macos-x64` | the work machine: Intel Mac | Same as above. |
@@ -95,6 +95,15 @@ Without the repository secrets `ANDROID_KEYSTORE_BASE64` and
 a fresh key, and Android only installs it after the old app is uninstalled.
 
 ### Windows setup
+
+`layon.exe`, and so the Windows app, needs the Visual C++ runtime. Most
+machines already have it; if starting it reports `VCRUNTIME140.dll` missing:
+
+```bat
+winget install Microsoft.VCRedist.2015+.x64
+```
+
+(`.arm64` on Windows on ARM.)
 
 Run the agent as the logged-in user, not as a service: its data lives in that
 user's `%LOCALAPPDATA%\layon`, and `pair` must read the same files.

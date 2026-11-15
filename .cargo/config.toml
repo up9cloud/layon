@@ -1,4 +1,0 @@
-# Release binaries depend on nothing but the OS: without this, MSVC builds need
-# the Visual C++ runtime (vcruntime140.dll) installed. Linux uses musl targets.
-[target.'cfg(all(windows, target_env = "msvc"))']
-rustflags = ["-C", "target-feature=+crt-static"]
