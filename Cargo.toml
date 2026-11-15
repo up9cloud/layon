@@ -1,0 +1,23 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/up9cloud/layon"
+
+[workspace.dependencies]
+layon-proto = { path = "crates/proto" }
+layon-client = { path = "crates/client" }
+anyhow = "1"
+clap = { version = "4", features = ["derive", "env"] }
+dirs = "7"
+iroh = "1.4"
+mdns-sd = "0.21"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "signal", "net"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

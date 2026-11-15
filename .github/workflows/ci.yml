@@ -1,0 +1,22 @@
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+      - run: cargo build --release -p layon-agent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: layon-agent-${{ matrix.os }}
+          path: |
+            target/release/layon-agent
+            target/release/layon-agent.exe

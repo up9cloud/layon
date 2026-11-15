@@ -1,0 +1,24 @@
+[package]
+name = "layon-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
+required-features = ["bindgen"]
+
+[features]
+bindgen = ["uniffi/cli"]
+
+[dependencies]
+anyhow.workspace = true
+layon-client = { path = "../client", default-features = false }
+thiserror = "2"
+tokio = { workspace = true, features = ["sync", "rt-multi-thread"] }
+uniffi = { version = "0.32", features = ["tokio"] }

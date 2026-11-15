@@ -1,0 +1,31 @@
+[package]
+name = "layon-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[features]
+default = ["mdns", "cli"]
+# Off on iOS: raw multicast needs an entitlement there, so the app feeds
+# addresses from Bonjour instead.
+mdns = ["dep:mdns-sd"]
+cli = ["dep:clap", "dep:dirs", "dep:tracing-subscriber", "tokio/rt-multi-thread"]
+
+[[bin]]
+name = "layon"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[dependencies]
+layon-proto.workspace = true
+anyhow.workspace = true
+iroh.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+mdns-sd = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
+dirs = { workspace = true, optional = true }
+tracing-subscriber = { workspace = true, optional = true }
