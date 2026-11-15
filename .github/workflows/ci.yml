@@ -72,7 +72,7 @@ jobs:
       - run: rustup target add aarch64-linux-android x86_64-linux-android
       - run: cargo install cargo-ndk --locked
       # Only compile-checked: the Android app drives the CLI instead.
-      - run: cargo ndk -t arm64-v8a -t x86_64 build --release -p layon-ffi
+      - run: cargo ndk --platform 26 -t arm64-v8a -t x86_64 build --release -p layon-ffi
       - run: apps/android/build-cli.sh
       - working-directory: apps/android
         env:
