@@ -14,10 +14,18 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
-      - run: cargo build --release -p layon-agent
+      - run: cargo build --release -p layon-agent -p layon-client
       - uses: actions/upload-artifact@v7
         with:
-          name: layon-agent-${{ matrix.os }}
+          name: layon-${{ matrix.os }}
           path: |
             target/release/layon-agent
             target/release/layon-agent.exe
+            target/release/layon
+            target/release/layon.exe
+      # Built alone so the client's default features (mdns) stay off, as in the app.
+      - name: Build FFI for iOS
+        if: runner.os == 'macOS'
+        run: |
+          rustup target add aarch64-apple-ios
+          cargo build --release -p layon-ffi --target aarch64-apple-ios
