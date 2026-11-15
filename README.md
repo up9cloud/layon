@@ -42,8 +42,10 @@ the machine you control, and one app on the device you hold.
 | --- | --- | --- |
 | `layon-windows-x64.exe` | the work machine: Windows on Intel/AMD | Run with no arguments, it stays running and carries out sleep and hibernate requests from paired devices; `layon pair` shows the pairing QR code. `layon remote ...` makes the same file a command-line remote for another machine: for testing without a phone. |
 | `layon-windows-arm64.exe` | the work machine: Windows on ARM (e.g. Snapdragon) | Same as above. |
-| `layon-linux-x64` | the work machine: Linux | Same as above. |
+| `layon-linux-x64` | the work machine: Linux on Intel/AMD | Same as above. |
+| `layon-linux-arm64` | the work machine: Linux on ARM (e.g. Raspberry Pi 4/5) | Same as above. |
 | `layon-macos-arm64` | the work machine: Apple Silicon Mac | Same as above. |
+| `layon-macos-x64` | the work machine: Intel Mac | Same as above. |
 | `layon-app-ios.ipa` | iPhone or iPad | The remote: scan the QR code once, then sleep, hibernate or wake the machine. Unsigned: sign it with your own Apple ID when installing (e.g. Sideloadly). |
 | `layon-app-android.apk` | Android phone or tablet | The same remote, for Android. |
 | `layon-app-windows-x64.zip`, `layon-app-windows-arm64.zip` | Windows tablet or laptop (Intel/AMD, or ARM) | The same remote, for Windows. Unzip anywhere and run `Layon.exe`; nothing to install. Pairing is by pasting the code `layon pair` prints. |

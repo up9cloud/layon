@@ -19,20 +19,29 @@ jobs:
         include:
           - { os: windows-latest, label: windows-x64, ext: .exe }
           - { os: windows-11-arm, label: windows-arm64, ext: .exe }
-          - { os: ubuntu-latest, label: linux-x64, ext: "" }
+          # The oldest runner: the binary needs the glibc it was built against
+          # or newer, and 22.04's 2.35 also covers Debian 12 / Raspberry Pi OS.
+          - { os: ubuntu-22.04, label: linux-x64, ext: "" }
+          - { os: ubuntu-22.04-arm, label: linux-arm64, ext: "" }
           - { os: macos-latest, label: macos-arm64, ext: "" }
+          # Cross-built on Apple Silicon; the tests run under Rosetta.
+          - { os: macos-latest, label: macos-x64, ext: "", target: x86_64-apple-darwin }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
+      - if: matrix.target
+        run: rustup target add ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo clippy --workspace --all-targets -- -D warnings
-      - run: cargo test --workspace
-      - run: cargo build --release -p layon
+        with:
+          key: ${{ matrix.label }}
+      - run: cargo clippy --workspace --all-targets ${{ matrix.target && format('--target {0}', matrix.target) }} -- -D warnings
+      - run: cargo test --workspace ${{ matrix.target && format('--target {0}', matrix.target) }}
+      - run: cargo build --release -p layon ${{ matrix.target && format('--target {0}', matrix.target) }}
       - name: Name the binary after the device it installs on
         shell: bash
         run: |
           mkdir dist
-          cp target/release/layon${{ matrix.ext }} dist/layon-${{ matrix.label }}${{ matrix.ext }}
+          cp target/${{ matrix.target }}/release/layon${{ matrix.ext }} dist/layon-${{ matrix.label }}${{ matrix.ext }}
       - uses: actions/upload-artifact@v7
         with:
           path: dist/layon-${{ matrix.label }}${{ matrix.ext }}
