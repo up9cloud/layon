@@ -1,0 +1,50 @@
+name: Layon
+options:
+  bundleIdPrefix: io.github.up9cloud
+  deploymentTarget:
+    iOS: "17.0"
+targets:
+  Layon:
+    type: application
+    platform: iOS
+    scheme: {}
+    sources:
+      - Sources
+      - Generated/layon_ffi.swift
+    info:
+      path: Generated/Info.plist
+      properties:
+        CFBundleDisplayName: Layon
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSCameraUsageDescription: Scan the pairing QR code that layon-agent shows.
+        NSLocalNetworkUsageDescription: Find and control your paired machines on this network.
+        NSBonjourServices:
+          - _layon._udp
+        CFBundleURLTypes:
+          - CFBundleURLName: io.github.up9cloud.layon
+            CFBundleURLSchemes:
+              - layon
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.up9cloud.layon
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_VERSION: "5.0"
+        SWIFT_INCLUDE_PATHS: $(PROJECT_DIR)/Generated/include
+        OTHER_LDFLAGS:
+          - $(PROJECT_DIR)/Generated/liblayon_ffi.a
+          - -lresolv
+          - -framework
+          - SystemConfiguration
+          - -framework
+          - Security

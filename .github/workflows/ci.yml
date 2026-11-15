@@ -4,10 +4,14 @@ on:
   pull_request:
 
 jobs:
-  test:
+  desktop:
     strategy:
       matrix:
-        os: [windows-latest, windows-11-arm, ubuntu-latest, macos-latest]
+        include:
+          - { os: windows-latest, label: windows-x64, ext: .exe }
+          - { os: windows-11-arm, label: windows-arm64, ext: .exe }
+          - { os: ubuntu-latest, label: linux-x64, ext: "" }
+          - { os: macos-latest, label: macos-arm64, ext: "" }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -15,27 +19,68 @@ jobs:
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
       - run: cargo build --release -p layon-agent -p layon-client
+      - name: Name binaries after the device they install on
+        shell: bash
+        run: |
+          mkdir dist
+          cp target/release/layon-agent${{ matrix.ext }} dist/layon-agent-${{ matrix.label }}${{ matrix.ext }}
+          cp target/release/layon${{ matrix.ext }} dist/layon-cli-${{ matrix.label }}${{ matrix.ext }}
       - uses: actions/upload-artifact@v7
         with:
-          name: layon-${{ matrix.os }}
-          path: |
-            target/release/layon-agent
-            target/release/layon-agent.exe
-            target/release/layon
-            target/release/layon.exe
-      # Built alone so the client's default features (mdns) stay off, as in the app.
-      - name: Build FFI for iOS
-        if: runner.os == 'macOS'
+          path: dist/layon-agent-${{ matrix.label }}${{ matrix.ext }}
+          archive: false
+      - uses: actions/upload-artifact@v7
+        with:
+          path: dist/layon-cli-${{ matrix.label }}${{ matrix.ext }}
+          archive: false
+
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Swatinem/rust-cache@v2
+      - run: rustup target add aarch64-apple-ios
+      - run: brew install xcodegen
+      - run: apps/ios/build-rust.sh
+      - name: Build unsigned ipa
+        working-directory: apps/ios
         run: |
-          rustup target add aarch64-apple-ios
-          cargo build --release -p layon-ffi --target aarch64-apple-ios
+          xcodegen generate
+          xcodebuild -project Layon.xcodeproj -scheme Layon -configuration Release \
+            -sdk iphoneos -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= build
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/Layon.app Payload/
+          zip -qr layon-app-ios.ipa Payload
+      - uses: actions/upload-artifact@v7
+        with:
+          path: apps/ios/layon-app-ios.ipa
+          archive: false
 
   android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: 9.8.2
       - run: rustup target add aarch64-linux-android x86_64-linux-android
       - run: cargo install cargo-ndk --locked
-      # x86_64 is for the emulator.
+      # Only compile-checked: the Android app drives the CLI instead.
       - run: cargo ndk -t arm64-v8a -t x86_64 build --release -p layon-ffi
+      - run: apps/android/build-cli.sh
+      - working-directory: apps/android
+        env:
+          LAYON_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          LAYON_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: gradle --no-daemon assembleRelease
+      - run: cp apps/android/app/build/outputs/apk/release/app-release.apk layon-app-android.apk
+      - uses: actions/upload-artifact@v7
+        with:
+          path: layon-app-android.apk
+          archive: false

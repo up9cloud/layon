@@ -4,8 +4,9 @@ Work from bed: drive a work machine from a phone or tablet.
 
 Two halves. An **agent** runs on the work machine (Windows first; Linux and
 macOS compile too). A **client** runs on the phone or tablet (iOS and iPadOS
-first). Today the client is a Rust library plus a test CLI; the mobile app does
-not exist yet.
+first, then Android). The apps are thin: every button runs the `layon` CLI,
+except on iOS, which cannot run a bundled executable and links the library
+instead.
 
 What works: put the machine to sleep or hibernate, and wake it with
 Wake-on-LAN. Planned: type into the work machine's terminal from the mobile
@@ -18,11 +19,27 @@ device.
 - `crates/client` — the mobile-side library, and `layon`, a CLI that stands in
   for the mobile device.
 - `crates/ffi` — the client library exposed to Swift through UniFFI.
+- `apps/ios` — SwiftUI app for iPhone and iPad, over `crates/ffi`.
+- `apps/android` — Android app; it bundles the `layon` CLI and runs it with
+  `--json`.
 
 The two sides talk over [iroh](https://iroh.computer) (QUIC). Each has a
 permanent key; a device is identified by its key, never by an address. Pairing
 is scanning a QR code once. After that the mobile device finds the machine
 through mDNS, so either side changing IP needs no re-pairing.
+
+## Download
+
+Each CI run on the Actions tab keeps one file per device:
+
+| file | install on |
+| --- | --- |
+| `layon-agent-<platform>` | the work machine |
+| `layon-app-ios.ipa` | iPhone or iPad, signed with your own Apple ID (e.g. Sideloadly) |
+| `layon-app-android.apk` | Android phone or tablet |
+| `layon-cli-<platform>` | another computer, to test an agent without the app |
+
+`<platform>` is `windows-x64`, `windows-arm64`, `linux-x64` or `macos-arm64`.
 
 ## Build
 
@@ -53,6 +70,20 @@ layon pair 'layon://pair/...'   # the text printed under the QR code
 layon sleep
 layon wake
 ```
+
+`--json` is what the apps use: `pair`, `hosts` and `info` print JSON, and a
+failure exits 1 with `{"error": ...}` on stderr.
+
+### Apps
+
+- iOS: on a Mac, `apps/ios/build-rust.sh`, then `xcodegen generate` in
+  `apps/ios` and open `Layon.xcodeproj`.
+- Android: `apps/android/build-cli.sh` (needs `cargo-ndk` and the NDK), then
+  `gradle assembleDebug` in `apps/android`.
+
+Without the repository secrets `ANDROID_KEYSTORE_BASE64` and
+`ANDROID_KEYSTORE_PASSWORD` (key alias `layon`), each CI run signs the apk with
+a fresh key, and Android only installs it after the old app is uninstalled.
 
 ### Windows setup
 
