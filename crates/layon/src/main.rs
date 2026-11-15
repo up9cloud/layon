@@ -1,22 +1,24 @@
 mod net;
 mod power;
+mod remote;
 mod server;
 mod state;
 
-use std::{path::PathBuf, time::Duration};
+use std::{path::PathBuf, process::ExitCode, time::Duration};
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use layon_proto::{DEFAULT_PORT, PairingTicket};
 use qrcode::{QrCode, render::unicode::Dense1x2};
 
 use crate::state::{PAIRING_TTL, State};
 
-/// Work-machine side of layon.
+/// On the work machine, serves paired devices; `layon remote` drives one from
+/// elsewhere.
 #[derive(Parser)]
 #[command(version)]
 struct Cli {
-    /// Where the key and paired devices live.
+    /// Where keys and pairings live.
     #[arg(long, global = true, env = "LAYON_DATA_DIR")]
     data_dir: Option<PathBuf>,
     /// UDP port to listen on.
@@ -40,20 +42,49 @@ enum Command {
     Devices,
     /// Forget a device, by id or unique id prefix.
     Unpair { id: String },
+    /// Control a paired work machine from this one.
+    Remote(remote::Args),
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> ExitCode {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "warn,layon_agent=info".into()),
+                .unwrap_or_else(|_| "warn,layon=info".into()),
         )
+        // stdout is reserved for `remote --json`.
+        .with_writer(std::io::stderr)
         .init();
 
     let cli = Cli::parse();
-    let state = State::open(cli.data_dir)?;
-    match cli.command.unwrap_or(Command::Run { dry_run: false }) {
+    let json = matches!(&cli.command, Some(Command::Remote(args)) if args.json);
+    match run(cli).await {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(e) => {
+            if json {
+                eprintln!("{}", serde_json::json!({ "error": format!("{e:#}") }));
+            } else {
+                eprintln!("Error: {e:#}");
+            }
+            ExitCode::FAILURE
+        }
+    }
+}
+
+async fn run(cli: Cli) -> Result<()> {
+    let data_dir = match cli.data_dir {
+        Some(dir) => dir,
+        None => dirs::data_local_dir()
+            .context("no per-user data directory on this platform; pass --data-dir")?
+            .join("layon"),
+    };
+    let command = cli.command.unwrap_or(Command::Run { dry_run: false });
+    if let Command::Remote(args) = command {
+        return remote::run(&data_dir, args).await;
+    }
+    let state = State::open(&data_dir)?;
+    match command {
         Command::Run { dry_run } => server::run(state, cli.port, dry_run).await,
         Command::Pair => pair(&state, cli.port).await,
         Command::Devices => {
@@ -68,6 +99,7 @@ async fn main() -> Result<()> {
             }
             Ok(())
         }
+        Command::Remote(_) => unreachable!(),
     }
 }
 
@@ -85,7 +117,7 @@ async fn pair(state: &State, port: u16) -> Result<()> {
         .dark_color(Dense1x2::Light)
         .light_color(Dense1x2::Dark)
         .build();
-    println!("{qr}\n\n{ticket}\n\nScan with the layon app. Valid for {} minutes.", PAIRING_TTL.as_secs() / 60);
+    println!("{qr}\n\n{ticket}\n\nScan with the layon app, or pass the text to `layon remote pair`. Valid for {} minutes.", PAIRING_TTL.as_secs() / 60);
 
     let deadline = tokio::time::Instant::now() + PAIRING_TTL;
     loop {

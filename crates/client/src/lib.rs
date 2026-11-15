@@ -1,7 +1,6 @@
-//! Mobile side of layon: pairing, power requests and Wake-on-LAN.
+//! Remote side of layon: pairing, power requests and Wake-on-LAN.
 //!
-//! UI-free on purpose, so the same code backs the iOS app and the `layon`
-//! test CLI.
+//! UI-free on purpose, so the same code backs the iOS app and `layon remote`.
 
 use std::{
     collections::BTreeSet,

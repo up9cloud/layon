@@ -2,11 +2,11 @@
 
 Work from bed: drive a work machine from a phone or tablet.
 
-Two halves. An **agent** runs on the work machine (Windows first; Linux and
-macOS compile too). A **client** runs on the phone or tablet (iOS and iPadOS
-first, then Android). The apps are thin: every button runs the `layon` CLI,
-except on iOS, which cannot run a bundled executable and links the library
-instead.
+One binary, `layon`, runs on the work machine and serves it (Windows first;
+Linux and macOS too). An app on the phone or tablet is the remote control (iOS
+and iPadOS first, then Android). The apps are thin: every button runs
+`layon remote ...`, except on iOS, which cannot run a bundled executable and
+links the library instead.
 
 What works: put the machine to sleep or hibernate, and wake it with
 Wake-on-LAN. Planned: type into the work machine's terminal from the mobile
@@ -15,13 +15,14 @@ device.
 ## How it fits together
 
 - `crates/proto` — the request/response types and the pairing code format.
-- `crates/agent` — `layon-agent`, the work-machine daemon.
-- `crates/client` — the mobile-side library, and `layon`, a CLI that stands in
-  for the mobile device.
+- `crates/layon` — the `layon` binary: the work-machine daemon, and
+  `layon remote`, which drives one.
+- `crates/client` — the remote-side library behind `layon remote` and the iOS
+  app.
 - `crates/ffi` — the client library exposed to Swift through UniFFI.
 - `apps/ios` — SwiftUI app for iPhone and iPad, over `crates/ffi`.
-- `apps/android` — Android app; it bundles the `layon` CLI and runs it with
-  `--json`.
+- `apps/android` — Android app; it bundles `layon` and runs
+  `layon remote --json`.
 
 The two sides talk over [iroh](https://iroh.computer) (QUIC). Each has a
 permanent key; a device is identified by its key, never by an address. Pairing
@@ -35,13 +36,12 @@ the machine you control, and one app on the device you hold.
 
 | file | install on | what it does |
 | --- | --- | --- |
-| `layon-agent-windows-x64.exe` | the work machine: Windows on Intel/AMD | Stays running and carries out sleep and hibernate requests from paired devices; shows the pairing QR code (`layon-agent pair`). |
-| `layon-agent-windows-arm64.exe` | the work machine: Windows on ARM (e.g. Snapdragon) | Same as above. |
-| `layon-agent-linux-x64` | the work machine: Linux | Same as above. |
-| `layon-agent-macos-arm64` | the work machine: Apple Silicon Mac | Same as above. |
+| `layon-windows-x64.exe` | the work machine: Windows on Intel/AMD | Run with no arguments, it stays running and carries out sleep and hibernate requests from paired devices; `layon pair` shows the pairing QR code. `layon remote ...` makes the same file a command-line remote for another machine: for testing without a phone, and for a Windows tablet until it has an app. |
+| `layon-windows-arm64.exe` | the work machine: Windows on ARM (e.g. Snapdragon) | Same as above. |
+| `layon-linux-x64` | the work machine: Linux | Same as above. |
+| `layon-macos-arm64` | the work machine: Apple Silicon Mac | Same as above. |
 | `layon-app-ios.ipa` | iPhone or iPad | The remote: scan the QR code once, then sleep, hibernate or wake the machine. Unsigned: sign it with your own Apple ID when installing (e.g. Sideloadly). |
 | `layon-app-android.apk` | Android phone or tablet | The same remote, for Android. |
-| `layon-cli-windows-x64.exe`, `-windows-arm64.exe`, `-linux-x64`, `-macos-arm64` | any other computer on the same network | The remote as a command line (`layon pair`, `layon sleep`, `layon wake`). For testing an agent without a phone, and for a Windows tablet until it has an app. |
 
 ## Build
 
@@ -57,24 +57,24 @@ workload).
 On the work machine:
 
 ```sh
-layon-agent            # serve; leave it running
-layon-agent pair       # in a second terminal: shows the QR code
-layon-agent devices
-layon-agent unpair <id prefix>
+layon                  # serve; leave it running
+layon pair             # in a second terminal: shows the QR code
+layon devices
+layon unpair <id prefix>
 ```
 
-`layon-agent run --dry-run` logs power requests without acting on them.
+`layon run --dry-run` logs power requests without acting on them.
 
 From another computer on the same network, in place of the mobile device:
 
 ```sh
-layon pair 'layon://pair/...'   # the text printed under the QR code
-layon sleep
-layon wake
+layon remote pair 'layon://pair/...'   # the text printed under the QR code
+layon remote sleep
+layon remote wake
 ```
 
-`--json` is what the apps use: `pair`, `hosts` and `info` print JSON, and a
-failure exits 1 with `{"error": ...}` on stderr.
+`layon remote --json` is what the apps use: `pair`, `hosts` and `info` print
+JSON, and a failure exits 1 with `{"error": ...}` on stderr.
 
 ### Apps
 
@@ -102,7 +102,7 @@ netsh advfirewall firewall add rule name="layon mDNS" dir=in action=allow protoc
 Start at logon:
 
 ```bat
-schtasks /create /tn layon-agent /sc onlogon /tr "C:\path\to\layon-agent.exe"
+schtasks /create /tn layon /sc onlogon /tr "C:\path\to\layon.exe"
 ```
 
 ### Waking

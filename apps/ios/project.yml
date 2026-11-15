@@ -27,7 +27,7 @@ targets:
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        NSCameraUsageDescription: Scan the pairing QR code that layon-agent shows.
+        NSCameraUsageDescription: Scan the pairing QR code that `layon pair` shows.
         NSLocalNetworkUsageDescription: Find and control your paired machines on this network.
         NSBonjourServices:
           - _layon._udp

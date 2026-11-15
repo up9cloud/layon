@@ -1715,7 +1715,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "layon-agent"
+name = "layon"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1723,6 +1723,7 @@ dependencies = [
  "dirs",
  "gethostname",
  "iroh",
+ "layon-client",
  "layon-proto",
  "mdns-sd",
  "netdev 0.47.0",
@@ -1741,8 +1742,6 @@ name = "layon-client"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "clap",
- "dirs",
  "iroh",
  "layon-proto",
  "mdns-sd",
@@ -1750,7 +1749,6 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

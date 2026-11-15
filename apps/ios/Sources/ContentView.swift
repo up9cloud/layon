@@ -15,7 +15,7 @@ struct ContentView: View {
                 }
                 if model.hosts.isEmpty {
                     Section {
-                        Text("No paired machine. Run `layon-agent pair` on it and scan the code.")
+                        Text("No paired machine. Run `layon pair` on it and scan the code.")
                     }
                 }
                 ForEach(model.hosts, id: \.id) { host in

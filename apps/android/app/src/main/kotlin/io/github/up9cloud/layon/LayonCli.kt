@@ -10,10 +10,10 @@ data class Host(val id: String, val name: String, val os: String)
 
 class CliException(message: String) : Exception(message)
 
-/** Every action is a run of the bundled `layon` CLI with `--json`. */
+/** Every action is a run of the bundled `layon remote --json`. */
 class LayonCli(context: Context) {
     private val exe = File(context.applicationInfo.nativeLibraryDir, "liblayon.so").path
-    private val store = File(context.filesDir, "client.json").path
+    private val dataDir = context.filesDir.path
     private val stderr = File(context.cacheDir, "layon-stderr.txt")
     private val wifi = context.applicationContext.getSystemService(WifiManager::class.java)
 
@@ -45,7 +45,7 @@ class LayonCli(context: Context) {
             acquire()
         }
         try {
-            val process = ProcessBuilder(listOf(exe, "--json", "--file", store) + args)
+            val process = ProcessBuilder(listOf(exe, "--data-dir", dataDir, "remote", "--json") + args)
                 .redirectError(stderr)
                 .start()
             val out = process.inputStream.bufferedReader().readText()

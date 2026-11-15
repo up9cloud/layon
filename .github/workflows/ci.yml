@@ -18,20 +18,15 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
-      - run: cargo build --release -p layon-agent -p layon-client
-      - name: Name binaries after the device they install on
+      - run: cargo build --release -p layon
+      - name: Name the binary after the device it installs on
         shell: bash
         run: |
           mkdir dist
-          cp target/release/layon-agent${{ matrix.ext }} dist/layon-agent-${{ matrix.label }}${{ matrix.ext }}
-          cp target/release/layon${{ matrix.ext }} dist/layon-cli-${{ matrix.label }}${{ matrix.ext }}
+          cp target/release/layon${{ matrix.ext }} dist/layon-${{ matrix.label }}${{ matrix.ext }}
       - uses: actions/upload-artifact@v7
         with:
-          path: dist/layon-agent-${{ matrix.label }}${{ matrix.ext }}
-          archive: false
-      - uses: actions/upload-artifact@v7
-        with:
-          path: dist/layon-cli-${{ matrix.label }}${{ matrix.ext }}
+          path: dist/layon-${{ matrix.label }}${{ matrix.ext }}
           archive: false
 
   ios:
@@ -71,7 +66,7 @@ jobs:
           gradle-version: 9.8.2
       - run: rustup target add aarch64-linux-android x86_64-linux-android
       - run: cargo install cargo-ndk --locked
-      # Only compile-checked: the Android app drives the CLI instead.
+      # Only compile-checked: the Android app runs `layon remote` instead.
       - run: cargo ndk --platform 26 -t arm64-v8a -t x86_64 build --release -p layon-ffi
       - run: apps/android/build-cli.sh
       - working-directory: apps/android

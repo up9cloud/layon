@@ -31,7 +31,12 @@ pub fn apply(action: PowerAction) -> Result<()> {
     run("pmset", &["sleepnow"])
 }
 
-#[cfg(unix)]
+#[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
+pub fn apply(action: PowerAction) -> Result<()> {
+    anyhow::bail!("{action:?} is not supported on this OS")
+}
+
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn run(program: &str, args: &[&str]) -> Result<()> {
     let status = std::process::Command::new(program).args(args).status()?;
     anyhow::ensure!(status.success(), "`{program} {}` exited with {status}", args.join(" "));

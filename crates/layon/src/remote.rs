@@ -1,86 +1,57 @@
-//! Stand-in for the mobile app, for testing an agent from another computer.
+//! `layon remote`: drive a paired work machine. The apps run these commands
+//! with `--json` (iOS excepted, which links `layon-client` directly).
 
-use std::{path::PathBuf, process::ExitCode, time::Duration};
+use std::{path::Path, time::Duration};
 
-use anyhow::{Context, Result, bail};
-use clap::{Parser, Subcommand};
+use anyhow::{Result, bail};
+use clap::Subcommand;
 use layon_client::{Client, Host, PairingTicket, PowerAction};
 use serde_json::json;
 
-#[derive(Parser)]
-#[command(version)]
-struct Cli {
-    /// Where this device's key and paired hosts live.
-    #[arg(long, global = true, env = "LAYON_CLIENT_FILE")]
-    file: Option<PathBuf>,
-    /// Machine-readable output, for the apps that drive this CLI: `pair`,
-    /// `hosts` and `info` print JSON; a failure exits 1 with `{"error": ...}`
-    /// on stderr.
+#[derive(clap::Args)]
+pub struct Args {
+    /// Machine-readable output: `pair`, `hosts` and `info` print JSON; a
+    /// failure exits 1 with `{"error": ...}` on stderr.
     #[arg(long, global = true)]
-    json: bool,
+    pub json: bool,
     #[command(subcommand)]
     command: Command,
 }
 
 #[derive(Subcommand)]
 enum Command {
-    /// Pair using the `layon://pair/...` text that `layon-agent pair` prints.
+    /// Pair using the `layon://pair/...` text that `layon pair` prints.
     Pair {
         ticket: PairingTicket,
-        #[arg(long, default_value = "layon-cli")]
-        name: String,
+        /// How the host lists this device; defaults to this machine's name.
+        #[arg(long)]
+        name: Option<String>,
     },
     /// List paired hosts.
     Hosts,
+    /// Show what the host reports about itself; fails if it is not awake.
     Info { host: Option<String> },
+    /// Put the host to sleep.
     Sleep { host: Option<String> },
+    /// Hibernate the host.
     Hibernate { host: Option<String> },
     /// Send Wake-on-LAN packets, then wait for the host to answer.
     Wake { host: Option<String> },
+    /// Remove the pairing from this device.
     Forget { host: Option<String> },
 }
 
-#[tokio::main]
-async fn main() -> ExitCode {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "warn".into()),
-        )
-        .with_writer(std::io::stderr)
-        .init();
-
-    let cli = Cli::parse();
-    let json = cli.json;
-    match open_and_run(cli).await {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(e) => {
-            if json {
-                eprintln!("{}", json!({ "error": format!("{e:#}") }));
-            } else {
-                eprintln!("Error: {e:#}");
-            }
-            ExitCode::FAILURE
-        }
-    }
-}
-
-async fn open_and_run(cli: Cli) -> Result<()> {
-    let file = match cli.file {
-        Some(file) => file,
-        None => dirs::data_local_dir()
-            .context("no per-user data directory; pass --file")?
-            .join("layon")
-            .join("client.json"),
-    };
-    let mut client = Client::open(file).await?;
-    let result = run(&mut client, cli.command, cli.json).await;
+pub async fn run(data_dir: &Path, args: Args) -> Result<()> {
+    let mut client = Client::open(data_dir.join("client.json")).await?;
+    let result = execute(&mut client, args.command, args.json).await;
     client.close().await;
     result
 }
 
-async fn run(client: &mut Client, command: Command, json: bool) -> Result<()> {
+async fn execute(client: &mut Client, command: Command, json: bool) -> Result<()> {
     match command {
         Command::Pair { ticket, name } => {
+            let name = name.unwrap_or_else(|| gethostname::gethostname().to_string_lossy().into_owned());
             let host = client.pair(&ticket, &name).await?;
             if json {
                 println!("{}", host_json(&host));

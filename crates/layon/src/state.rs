@@ -23,7 +23,7 @@ struct Pairing {
     expires_at: u64,
 }
 
-/// The files are the only channel between `layon-agent run` and the other
+/// The files are the only channel between `layon run` and the other
 /// subcommands, so every read goes back to disk.
 #[derive(Debug, Clone)]
 pub struct State {
@@ -31,14 +31,8 @@ pub struct State {
 }
 
 impl State {
-    pub fn open(dir: Option<PathBuf>) -> Result<Self> {
-        let dir = match dir {
-            Some(dir) => dir,
-            None => dirs::data_local_dir()
-                .context("no per-user data directory on this platform; pass --data-dir")?
-                .join("layon")
-                .join("agent"),
-        };
+    pub fn open(data_dir: &Path) -> Result<Self> {
+        let dir = data_dir.join("agent");
         fs::create_dir_all(&dir).with_context(|| format!("creating {}", dir.display()))?;
         Ok(Self { dir })
     }

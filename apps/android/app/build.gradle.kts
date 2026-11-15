@@ -46,7 +46,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // The CLI ships as liblayon.so so the installer unpacks it, executable,
+    // The layon binary ships as liblayon.so so the installer unpacks it, executable,
     // into nativeLibraryDir; that is the only place an app may exec from.
     packaging {
         jniLibs {

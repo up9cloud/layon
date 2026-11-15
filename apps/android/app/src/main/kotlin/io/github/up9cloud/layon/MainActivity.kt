@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
                 scan.launch(
                     ScanOptions()
                         .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                        .setPrompt("Scan the code from layon-agent pair")
+                        .setPrompt("Scan the code from layon pair")
                         .setBeepEnabled(false)
                         .setOrientationLocked(false),
                 )
@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
         hostButtons.clear()
         if (hosts.isEmpty()) {
             hostList.addView(TextView(this).apply {
-                text = "No paired machine. Run `layon-agent pair` on it and scan the code."
+                text = "No paired machine. Run `layon pair` on it and scan the code."
                 setPadding(0, dp(24), 0, 0)
             })
             return
